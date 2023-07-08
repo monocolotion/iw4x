@@ -293,7 +293,7 @@ namespace Components
 		const auto xuid = client->steamID;
 		MutedList.access([&](muteList& clients)
 		{
-			clients.insert(xuid);
+			clients.emplace(xuid);
 			SaveMutedList(clients);
 		});
 
@@ -314,11 +314,16 @@ namespace Components
 		MutedList.access([&](muteList& clients)
 		{
 			if (everyone)
+			{
 				clients.clear();
-			else
-				clients.erase(id);
+				SaveMutedList(clients);
+				return;
+			}
 
-			SaveMutedList(clients);
+			if (clients.erase(id) == 1)
+			{
+				SaveMutedList(clients);
+			}			
 		});
 	}
 
@@ -326,7 +331,7 @@ namespace Components
 	{
 		const auto _ = Lock();
 
-		const nlohmann::json mutedUsers = nlohmann::json
+		const auto mutedUsers = nlohmann::json
 		{
 			{ "SteamID", list },
 		};
