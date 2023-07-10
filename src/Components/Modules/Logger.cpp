@@ -65,7 +65,11 @@ namespace Components
 		}
 	}
 
-	void Logger::DebugInternal(const std::string_view& fmt, std::format_args&& args, [[maybe_unused]] const std::source_location& loc)
+#ifdef LOGGER_TRACE
+	void Logger::DebugInternal(const std::string_view& fmt, std::format_args&& args, const std::source_location& loc)
+#else
+	void Logger::DebugInternal(const std::string_view& fmt, std::format_args&& args)
+#endif
 	{
 #ifdef LOGGER_TRACE
 		const auto msg = std::vformat(fmt, args);

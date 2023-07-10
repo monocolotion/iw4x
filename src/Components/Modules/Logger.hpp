@@ -18,7 +18,11 @@ namespace Components
 		static void ErrorInternal(Game::errorParm_t error, const std::string_view& fmt, std::format_args&& args);
 		static void PrintErrorInternal(Game::conChannel_t channel, const std::string_view& fmt, std::format_args&& args);
 		static void WarningInternal(Game::conChannel_t channel, const std::string_view& fmt, std::format_args&& args);
+#ifdef LOGGER_TRACE
 		static void DebugInternal(const std::string_view& fmt, std::format_args&& args, const std::source_location& loc);
+#else
+		static void DebugInternal(const std::string_view& fmt, std::format_args&& args);
+#endif
 
 		static void Print(const std::string_view& fmt)
 		{
@@ -83,17 +87,23 @@ namespace Components
 		struct FormatWithLocation
 		{
 			std::string_view format;
+#ifdef LOGGER_TRACE
 			std::source_location location;
+#endif
 
-			FormatWithLocation(const std::string_view& fmt, std::source_location loc = std::source_location::current())
-				: format(fmt)
-				, location(std::move(loc))
+#ifdef LOGGER_TRACE
+			FormatWithLocation(const std::string_view& fmt, std::source_location loc = std::source_location::current()) : format(fmt), location(std::move(loc))
+#else
+			FormatWithLocation(const std::string_view& fmt) : format(fmt)
+#endif
 			{
 			}
 
-			FormatWithLocation(const char* fmt, std::source_location loc = std::source_location::current())
-				: format(fmt)
-				, location(std::move(loc))
+#ifdef LOGGER_TRACE
+			FormatWithLocation(const char* fmt, std::source_location loc = std::source_location::current()) : format(fmt), location(std::move(loc))
+#else
+			FormatWithLocation(const char* fmt) : format(fmt)
+#endif
 			{
 			}
 		};
@@ -103,7 +113,11 @@ namespace Components
 		{
 #ifdef _DEBUG
 			(Utils::String::SanitizeFormatArgs(args), ...);
+#ifdef LOGGER_TRACE
 			DebugInternal(f.format, std::make_format_args(args...), f.location);
+#else
+			DebugInternal(f.format, std::make_format_args(args...));
+#endif
 #endif
 		}
 
