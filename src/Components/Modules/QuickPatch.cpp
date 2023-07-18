@@ -329,10 +329,6 @@ namespace Components
 		// remove system pre-init stuff (improper quit, disk full)
 		Utils::Hook::Set<BYTE>(0x411350, 0xC3);
 
-		// Don't delete config files if corrupted
-		Utils::Hook::Set<BYTE>(0x47DCB3, 0xEB);
-		Utils::Hook::Set<BYTE>(0x4402B6, 0);
-
 		// hopefully allow alt-tab during game, used at least in alt-enter handling
 		Utils::Hook::Set<DWORD>(0x45ACE0, 0xC301B0);
 
