@@ -53,9 +53,6 @@
 #include <XInput.h>
 #pragma comment (lib, "xinput.lib")
 
-#include <dwmapi.h>
-#pragma comment (lib, "dwmapi.lib")
-
 // Ignore the warnings
 #pragma warning(push)
 #pragma warning(disable: 4100)

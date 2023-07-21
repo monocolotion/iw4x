@@ -2,8 +2,6 @@
 #include "Console.hpp"
 #include "TextRenderer.hpp"
 
-#include "Terminus_4.49.1.ttf.hpp"
-
 #include <version.hpp>
 
 #ifdef MOUSE_MOVED
@@ -33,24 +31,6 @@ namespace Components
 
 	bool Console::HasConsole = false;
 	bool Console::SkipShutdown = false;
-
-	COLORREF Console::TextColor = 
-#ifdef _DEBUG
-		RGB(255, 200, 117);
-#else
-		RGB(120, 237, 122);
-#endif
-
-	COLORREF Console::BackgroundColor =
-#ifdef _DEBUG
-		RGB(35, 21, 0);
-#else
-		RGB(25, 32, 25);
-#endif
-	HBRUSH Console::ForegroundBrush = CreateSolidBrush(TextColor);
-	HBRUSH Console::BackgroundBrush = CreateSolidBrush(BackgroundColor);
-
-	HANDLE Console::CustomConsoleFont;
 
 	std::thread Console::ConsoleThread;
 
@@ -149,39 +129,6 @@ namespace Components
 				OutputTop = 0;
 			}
 		}
-	}
-
-	float Console::GetDpiScale(const HWND hWnd)
-	{
-		const auto user32 = Utils::Library("user32.dll");
-		const auto getDpiForWindow = user32.getProc<UINT(WINAPI*)(HWND)>("GetDpiForWindow");
-		const auto getDpiForMonitor = user32.getProc<HRESULT(WINAPI*)(HMONITOR, int, UINT*, UINT*)>("GetDpiForMonitor");
-		
-		int dpi;
-
-		if (getDpiForWindow)
-		{
-			dpi = static_cast<int>(getDpiForWindow(hWnd));
-		}
-		else if (getDpiForMonitor)
-		{
-			HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
-			UINT xdpi, ydpi;
-			getDpiForMonitor(hMonitor, 0, &xdpi, &ydpi);
-			
-			dpi = 96;
-		}
-		else
-		{
-			HDC hDC = GetDC(hWnd);
-			INT ydpi = GetDeviceCaps(hDC, LOGPIXELSY);
-			ReleaseDC(nullptr, hDC);
-			
-			dpi = ydpi;
-		}
-
-		constexpr auto unawareDpi = 96.0f;
-		return static_cast<float>(dpi) / unawareDpi;
 	}
 
 
@@ -437,188 +384,6 @@ namespace Components
 		RefreshOutput();
 	}
 
-	HFONT CALLBACK Console::ReplaceFont([[maybe_unused]] int cHeight, int cWidth, int cEscapement, int cOrientation, [[maybe_unused]] int cWeight, DWORD bItalic, DWORD bUnderline,
-	                                    DWORD bStrikeOut, DWORD iCharSet, [[maybe_unused]] DWORD iOutPrecision, DWORD iClipPrecision, [[maybe_unused]] DWORD iQuality,
-	                                    [[maybe_unused]] DWORD iPitchAndFamily, [[maybe_unused]] LPCSTR pszFaceName)
-	{
-		HFONT font = CreateFontA(12, cWidth, cEscapement, cOrientation, 700, bItalic,
-		                         bUnderline, bStrikeOut, iCharSet, OUT_RASTER_PRECIS,
-		                         iClipPrecision, NONANTIALIASED_QUALITY, 0x31,
-		                         "Terminus (TTF)"
-		);
-
-		return font;
-	}
-
-	void Console::GetWindowPos(HWND hWnd, int* x, int* y)
-	{
-		HWND hWndParent = GetParent(hWnd);
-		POINT p{};
-
-		MapWindowPoints(hWnd, hWndParent, &p, 1);
-
-		(*x) = p.x;
-		(*y) = p.y;
-	}
-
-	BOOL CALLBACK Console::ResizeChildWindow(HWND hwndChild, LPARAM lParam)
-	{
-		auto id = GetWindowLong(hwndChild, GWL_ID);
-		auto isInputBox = id == INPUT_BOX;
-		auto isOutputBox = id == OUTPUT_BOX;
-
-		if (isInputBox || isOutputBox) 
-		{
-			RECT newParentRect = *reinterpret_cast<LPRECT>(lParam);
-
-			RECT childRect;
-
-			if (GetWindowRect(hwndChild, &childRect)) 
-			{
-
-				int childX, childY;
-
-				GetWindowPos(hwndChild, &childX, &childY);
-
-				HWND parent = Utils::Hook::Get<HWND>(0x64A3288);
-
-				auto scale = GetDpiScale(parent);
-
-				if (isInputBox) 
-				{
-
-					auto newX = childX; // No change!
-					auto newY = static_cast<int>((newParentRect.bottom - newParentRect.top) - 65 * scale);
-					auto newWidth = static_cast<int>((newParentRect.right - newParentRect.left) - 29 * scale);
-					auto newHeight = static_cast<int>((childRect.bottom - childRect.top) * scale); // No change!
-
-					MoveWindow(hwndChild, newX, newY, newWidth, newHeight, TRUE);
-				}
-				
-				if (isOutputBox)
-				{
-					auto newX = childX; // No change!
-					auto newY = childY; // No change!
-					auto newWidth = static_cast<int>((newParentRect.right - newParentRect.left) - 29);
-
-#ifdef REMOVE_HEADERBAR
-					constexpr auto margin = 10;
-#else
-					constexpr auto margin = 70;
-#endif
-					auto newHeight = static_cast<int>((newParentRect.bottom - newParentRect.top) - 74 * scale - margin);
-
-					MoveWindow(hwndChild, newX, newY, newWidth, newHeight, TRUE);
-				}
-			}
-		}
-
-		return TRUE;
-	}
-
-	// Instead of clearing fully the console text whenever the 0x400's character is written, we
-	//	clear it progressively when we run out of room by truncating the top line by line.
-	// A bit of trickery with SETREDRAW is required to avoid having the outputbox jump
-	//	around whenever clearing occurs.
-	void Console::MakeRoomForText([[maybe_unused]] int addedCharacters)
-	{
-		constexpr auto maxChars = 0x4000;
-		constexpr auto maxAffectedChars = 0x100;
-		HWND outputBox = Utils::Hook::Get<HWND>(0x64A328C);
-
-		auto totalClearLength = 0;
-
-		char str[maxAffectedChars];
-		const auto fetchedCharacters = GetWindowTextA(outputBox, str, maxAffectedChars);
-
-		auto totalChars = GetWindowTextLengthA(outputBox);
-		while (totalChars - totalClearLength > maxChars)
-		{
-			auto clearLength = maxAffectedChars; // Default to full clear
-
-			for (auto i = 0; i < fetchedCharacters; i++)
-			{
-				if (str[i] == '\n')
-				{
-					// Shorter clear if I meet a linebreak
-					clearLength = i + 1;
-					break;
-				}
-			}
-
-			totalClearLength += clearLength;
-		}
-
-		if (totalClearLength > 0)
-		{
-			SendMessageA(outputBox, WM_SETREDRAW, FALSE, 0);
-			SendMessageA(outputBox, EM_SETSEL, 0, totalClearLength);
-			SendMessageA(outputBox, EM_REPLACESEL, FALSE, 0);
-			SendMessageA(outputBox, WM_SETREDRAW, TRUE, 0);
-		}
-
-		Utils::Hook::Set(0x64A38B8, totalChars - totalClearLength);
-	}
-
-	void __declspec(naked) Console::Sys_PrintStub()
-	{
-		__asm
-		{
-			pushad
-			push edi
-			call MakeRoomForText
-			pop edi
-			popad
-
-			// Go back to AppendText
-			push 0x4F57F8
-			ret
-		}
-	}
-
-	LRESULT CALLBACK Console::ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, unsigned int lParam)
-	{
-		switch (Msg)
-		{
-		case WM_CREATE:
-		{
-			BOOL darkMode = TRUE;
-			constexpr auto DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
-			DwmSetWindowAttribute(hWnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &darkMode, sizeof(darkMode));
-			break;
-		}
-
-		case WM_CTLCOLORSTATIC:
-		case WM_CTLCOLOREDIT:
-		{
-			SetBkColor(reinterpret_cast<HDC>(wParam), BackgroundColor);
-			SetTextColor(reinterpret_cast<HDC>(wParam), TextColor);
-			return reinterpret_cast<LRESULT>(BackgroundBrush);
-		}
-
-		case WM_SIZE:
-			RECT rect;
-
-			if (GetWindowRect(hWnd, &rect))
-			{
-				EnumChildWindows(hWnd, ResizeChildWindow, reinterpret_cast<LPARAM>(&rect));
-			}
-
-			return 0;
-		}
-
-		return Utils::Hook::Call<LRESULT CALLBACK(HWND, UINT, WPARAM, unsigned int)>(0x64DC50)(hWnd, Msg, wParam, lParam);
-	}
-
-	ATOM CALLBACK Console::RegisterClassHook(WNDCLASSA* lpWndClass)
-	{
-		DeleteObject(lpWndClass->hbrBackground);
-		HBRUSH brush = CreateSolidBrush(BackgroundColor);
-		lpWndClass->hbrBackground = brush;
-
-		return RegisterClassA(lpWndClass);
-	}
-
 	void Console::ApplyConsoleStyle() 
 	{
 		Utils::Hook::Set<std::uint8_t>(0x428A8E, 0);    // Adjust logo Y pos
@@ -629,35 +394,6 @@ namespace Components
 		Utils::Hook::Set<std::uint32_t>(0x42895D, 423); // Reduce window height
 		Utils::Hook::Set<std::uint32_t>(0x428AC0, 597); // Reduce input width
 		Utils::Hook::Set<std::uint32_t>(0x428AED, 596); // Reduce output width
-
-		DWORD fontsInstalled;
-		CustomConsoleFont = AddFontMemResourceEx(const_cast<void*>(reinterpret_cast<const void*>(Font::Terminus::DATA)), Font::Terminus::LENGTH, 0, &fontsInstalled);
-
-		if (fontsInstalled > 0)
-		{
-			Utils::Hook::Nop(0x428A44, 6);
-			Utils::Hook(0x428A44, ReplaceFont, HOOK_CALL).install()->quick();
-		}
-
-		Utils::Hook::Nop(0x42892D, 6);
-		Utils::Hook(0x42892D, RegisterClassHook, HOOK_CALL).install()->quick();
-
-		Utils::Hook::Set(0x4288E6 + 4, &ConWndProc);
-
-		auto style = WS_CAPTION | WS_SIZEBOX | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
-		Utils::Hook::Set(0x42893F + 1, style);
-		Utils::Hook::Set(0x4289E2 + 1, style);
-
-#ifdef REMOVE_HEADERBAR
-		// Remove that hideous header window -rox
-		Utils::Hook::Set(0x428A7C, static_cast<char>(0xEB));
-		Utils::Hook::Set(0X428AF1 + 1, static_cast<char>(10));
-#endif
-
-		// Never reset text
-		Utils::Hook::Nop(0x4F57DF, 0x4F57F6 - 0x4F57DF);
-		Utils::Hook(0x4F57DF, Sys_PrintStub, HOOK_JUMP).install()->quick();
-
 	}
 
 	void Console::ConsoleRunner()

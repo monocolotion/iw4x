@@ -20,23 +20,12 @@ namespace Components
 		static void ShowAsyncConsole();
 
 	private:
-
-		static constexpr int OUTPUT_BOX = 0x64;
-		static constexpr int INPUT_BOX = 0x65;
-
 		static int Width;
 		static int Height;
 
 		static int OutputTop;
 		static int OutBuffer;
 		static int LastRefresh;
-
-		static COLORREF TextColor;
-		static COLORREF BackgroundColor;
-		static HBRUSH ForegroundBrush;
-		static HBRUSH BackgroundBrush;
-
-		static HANDLE CustomConsoleFont;
 
 		static char LineBuffer[1024];
 		static char LineBuffer2[1024];
@@ -80,15 +69,7 @@ namespace Components
 
 		static bool Con_IsDvarCommand_Stub(const char* cmd);
 		static void Cmd_ForEach_Stub(void(*callback)(const char* str));
-	
-		static LRESULT CALLBACK ConWndProc(HWND hWnd, UINT Msg, WPARAM wParam, unsigned int lParam);
-		static ATOM CALLBACK RegisterClassHook(WNDCLASSA* lpWndClass);
-		static BOOL CALLBACK ResizeChildWindow(HWND hwndChild, LPARAM lParam);
-		static HFONT CALLBACK ReplaceFont(int cHeight, int cWidth, int cEscapement, int cOrientation, int cWeight, DWORD bItalic, DWORD bUnderline, DWORD bStrikeOut, DWORD iCharSet, DWORD iOutPrecision, DWORD iClipPrecision, DWORD iQuality, DWORD iPitchAndFamily, LPCSTR pszFaceName);
+
 		static void ApplyConsoleStyle();
-		static void GetWindowPos(HWND hWnd, int* x, int* y);
-		static void Sys_PrintStub();
-		static void MakeRoomForText(int addedCharacters);
-		static float GetDpiScale(const HWND hWnd);
 	};
 }
