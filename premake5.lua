@@ -211,7 +211,6 @@ workspace "iw4x"
 	architecture "x86"
 	platforms "Win32"
 
-	systemversion "latest"
 	symbols "On"
 	staticruntime "On"
 	editandcontinue "Off"
@@ -227,7 +226,7 @@ workspace "iw4x"
 	filter "configurations:Release"
 		optimize "Size"
 		buildoptions {"/GL"}
-		linkoptions {"/IGNORE:4702", "/LTCG"}
+		linkoptions {"/LTCG"}
 		defines {"NDEBUG"}
 		flags {"FatalCompileWarnings", "FatalLinkWarnings"}
 
@@ -244,18 +243,21 @@ workspace "iw4x"
 	project "iw4x"
 		kind "SharedLib"
 		language "C++"
+
 		files {
 			"./src/**.rc",
 			"./src/**.hpp",
 			"./src/**.cpp",
 		}
+
 		includedirs {
 			"%{prj.location}/src",
 			"./src",
 			"./lib/include",
 		}
+
 		resincludedirs {
-			"$(ProjectDir)src" -- fix for VS IDE
+			"$(ProjectDir)src"
 		}
 
 		-- Debug flags
@@ -267,7 +269,7 @@ workspace "iw4x"
 		end
 
 		-- Pre-compiled header
-		pchheader "STDInclude.hpp" -- must be exactly same as used in #include directives
+		pchheader "STDInclude.hpp" -- must be exactly same used in #include directives
 		pchsource "src/STDInclude.cpp" -- real path
 
 		dependencies.imports()

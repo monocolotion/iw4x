@@ -56,7 +56,6 @@
 // Ignore the warnings
 #pragma warning(push)
 #pragma warning(disable: 4100)
-#pragma warning(disable: 26812)
 
 // Enable additional literals
 using namespace std::literals;
