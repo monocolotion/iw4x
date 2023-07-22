@@ -33,10 +33,10 @@ namespace Components
 		
 		void preDestroy() override;
 
-		static void Refresh([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
-		static void RefreshVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
-		static void RefreshVisibleListInternal([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info, bool refresh = false);
-		static void UpdateVisibleList([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info);
+		static void Refresh(const UIScript::Token& token,const Game::uiInfo_s* info);
+		static void RefreshVisibleList(const UIScript::Token& token, const Game::uiInfo_s* info);
+		static void RefreshVisibleListInternal(const UIScript::Token& token, const Game::uiInfo_s* info, bool refresh = false);
+		static void UpdateVisibleList(const UIScript::Token& token,const Game::uiInfo_s* info);
 		static void InsertRequest(Network::Address address);
 		static void Insert(const Network::Address& address, const Utils::InfoString& info);
 
@@ -50,9 +50,6 @@ namespace Components
 		static std::vector<ServerInfo>* GetList();
 
 		static void UpdateVisibleInfo();
-
-		static bool GetMasterServer(const char* ip, int port, Game::netadr_t& address);
-		static bool UseMasterServer;
 
 		static Dvar::Var UIServerSelected;
 		static Dvar::Var UIServerSelectedMap;

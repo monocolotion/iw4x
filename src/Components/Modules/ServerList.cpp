@@ -7,7 +7,6 @@
 #include "Party.hpp"
 #include "ServerList.hpp"
 #include "TextRenderer.hpp"
-#include "Toast.hpp"
 #include "UIFeeder.hpp"
 
 namespace Components
@@ -28,8 +27,6 @@ namespace Components
 	Dvar::Var ServerList::UIServerSelectedMap;
 	Dvar::Var ServerList::NETServerQueryLimit;
 	Dvar::Var ServerList::NETServerFrames;
-
-	bool ServerList::UseMasterServer = false;
 
 	std::vector<ServerList::ServerInfo>* ServerList::GetList()
 	{
@@ -292,31 +289,6 @@ namespace Components
 		if (IsOfflineList())
 		{
 			Discovery::Perform();
-		}
-		else if (IsOnlineList())
-		{
-			const auto masterPort = (*Game::com_masterPort)->current.integer;
-			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
-
-			// Check if our dvars can properly convert to a address
-			Game::netadr_t masterServerAddr;
-			if (!GetMasterServer(masterServerName, masterPort, masterServerAddr))
-			{
-				Logger::Print("Could not resolve address for {}:{}\n", masterServerName, masterPort);
-				UseMasterServer = false;
-				return;
-			}
-
-			Toast::Show("cardicon_headshot", "Server Browser", "Fetching servers...", 3000);
-
-			UseMasterServer = true;
-
-			RefreshContainer.awatingList = true;
-			RefreshContainer.awaitTime = Game::Sys_Milliseconds();
-			RefreshContainer.host = Network::Address(std::format("{}:{}", masterServerName, masterPort));
-
-			Logger::Print("Sending server list request to master\n");
-			Network::SendCommand(RefreshContainer.host, "getservers", std::format("IW4 {} full empty", PROTOCOL));
 		}
 		else if (IsFavouriteList())
 		{
@@ -729,10 +701,6 @@ namespace Components
 			{
 				RefreshContainer.awatingList = false;
 
-				Logger::Print("We haven't received a response from the master within {} seconds!\n", (Game::Sys_Milliseconds() - RefreshContainer.awaitTime) / 1000);
-				Toast::Show("net_disconnect", "^2Notice", "Master server could not be reached. Switching to decentralized network", 3000);
-
-				UseMasterServer = false;
 				Node::Synchronize();
 			}
 		}
@@ -818,11 +786,6 @@ namespace Components
 		}
 	}
 
-	bool ServerList::GetMasterServer(const char* ip, int port, Game::netadr_t& address)
-	{
-		return Game::NET_StringToAdr(Utils::String::VA("%s:%u", ip, port), &address);
-	}
-
 	bool ServerList::IsServerListOpen()
 	{
 		auto* menu = Game::Menus_FindByName(Game::uiContext, "pc_join_unranked");
@@ -891,7 +854,7 @@ namespace Components
 		});
 
 		// Set default masterServerName + port and save it 
-		Utils::Hook::Set<const char*>(0x60AD92, "master.xlabs.dev");
+		Utils::Hook::Set<const char*>(0x60AD92, "server.alterware.dev");
 		Utils::Hook::Set<std::uint8_t>(0x60AD90, Game::DVAR_NONE); // masterServerName
 		Utils::Hook::Set<std::uint8_t>(0x60ADC6, Game::DVAR_NONE); // masterPort
 
