@@ -272,19 +272,6 @@ namespace Utils
 					return this->keyStorage.get();
 				}
 
-				[[nodiscard]] std::string getPublicKey()
-				{
-					std::uint8_t buffer[4096]{};
-					unsigned long length = sizeof(buffer);
-
-					if (rsa_export(buffer, &length, PK_PUBLIC, this->getKeyPtr()) == CRYPT_OK)
-					{
-						return std::string{ reinterpret_cast<char*>(buffer), length };
-					}
-
-					return std::string{};
-				}
-
 				void set(const std::string& keyBuffer)
 				{
 					this->free();

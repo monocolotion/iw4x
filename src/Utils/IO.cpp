@@ -4,7 +4,6 @@ namespace Utils::IO
 {
 	bool FileExists(const std::string& file)
 	{
-		//return std::ifstream(file).good();
 		return GetFileAttributesA(file.data()) != INVALID_FILE_ATTRIBUTES;
 	}
 
