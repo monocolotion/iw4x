@@ -64,7 +64,7 @@ namespace Components
 			Logger::Print("You are connected to an invalid server\n");
 		});
 
-		Command::Add("safeRcon", [](const Command::Params* params)
+		Command::Add("rconSafe", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
 			{
@@ -93,7 +93,7 @@ namespace Components
 			directive.set_command(command);
 			directive.set_signature(message);
 
-			Network::SendCommand(target, "rconCrypto", directive.SerializeAsString());
+			Network::SendCommand(target, "rconSafe", directive.SerializeAsString());
 		});
 
 		Command::AddSV("RconWhitelistAdd", [](const Command::Params* params)
@@ -211,7 +211,7 @@ namespace Components
 		RConOutputBuffer.clear();
 	}
 
-	void RCon::RConCryptoExecutor(const Network::Address& address, std::string command)
+	void RCon::RConSafeExecutor(const Network::Address& address, std::string command)
 	{
 		RConOutputBuffer.clear();
 
@@ -274,7 +274,7 @@ namespace Components
 			}, Scheduler::Pipeline::MAIN);
 		});
 
-		Network::OnClientPacket("rconCrypto", [](const Network::Address& address, [[maybe_unused]] const std::string& data) -> void
+		Network::OnClientPacket("rconSafe", [](const Network::Address& address, [[maybe_unused]] const std::string& data) -> void
 		{
 			const auto time = Game::Sys_Milliseconds();
 			if (!IsRateLimitCheckDisabled() && !RateLimitCheck(address, time))
@@ -307,7 +307,7 @@ namespace Components
 			std::string rconData = directive.command();
 			Scheduler::Once([address, s = std::move(rconData)]
 			{
-				RConCryptoExecutor(address, s);
+				RConSafeExecutor(address, s);
 			}, Scheduler::Pipeline::MAIN);
 		});
 	}

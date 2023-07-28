@@ -46,6 +46,6 @@ namespace Components
 		static void RateLimitCleanup(int time);
 
 		static void RConExecutor(const Network::Address& address, std::string data);
-		static void RConCryptoExecutor(const Network::Address& address, std::string command);
+		static void RConSafeExecutor(const Network::Address& address, std::string command);
 	};
 }
