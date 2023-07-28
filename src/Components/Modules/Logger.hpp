@@ -1,5 +1,7 @@
 #pragma once
 
+#define LOGGER_TRACE
+
 namespace Components
 {
 	class Logger : public Component
