@@ -219,7 +219,7 @@ namespace Components
 		if (RConLogRequests.get<bool>())
 #endif
 		{
-			Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing RCon request from {}: {}\n", address.getString(), command);
+			Logger::Print(Game::CON_CHANNEL_NETWORK, "Executing Safe RCon request from {}: {}\n", address.getString(), command);
 		}
 
 		Logger::PipeOutput([](const std::string& output)
@@ -296,11 +296,15 @@ namespace Components
 			}
 
 			Proto::RCon::SecureCommand directive;
-			if (!directive.ParseFromString(data)) return;
+			if (!directive.ParseFromString(data))
+			{
+				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "Unable to parse secure command from {}\n", address.getString());
+				return;
+			}
 
 			if (!Utils::Cryptography::RSA::VerifyMessage(key, directive.message(), directive.signature()))
 			{
-				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "RSA signature verification failed for message got from {}\n", address.getString());
+				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "RSA signature verification failed for message from {}\n", address.getString());
 				return;
 			}
 
