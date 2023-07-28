@@ -87,11 +87,11 @@ namespace Components
 			}
 
 			const auto& key = CryptoKeyRSA::GetPrivateKey();
-			const auto message = Utils::Cryptography::RSA::SignMessage(key, command);
+			const auto signature = Utils::Cryptography::RSA::SignMessage(key, command);
 
-			Proto::RCon::Command directive;
-			directive.set_command(command);
-			directive.set_signature(message);
+			Proto::RCon::SecureCommand directive;
+			directive.set_message(command);
+			directive.set_signature(signature);
 
 			Network::SendCommand(target, "rconSafe", directive.SerializeAsString());
 		});
@@ -295,16 +295,16 @@ namespace Components
 				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "RSA public key is invalid\n");
 			}
 
-			Proto::RCon::Command directive;
+			Proto::RCon::SecureCommand directive;
 			if (!directive.ParseFromString(data)) return;
 
-			if (!Utils::Cryptography::RSA::VerifyMessage(key, directive.command(), directive.signature()))
+			if (!Utils::Cryptography::RSA::VerifyMessage(key, directive.message(), directive.signature()))
 			{
 				Logger::PrintError(Game::CON_CHANNEL_NETWORK, "RSA signature verification failed for message got from {}\n", address.getString());
 				return;
 			}
 
-			std::string rconData = directive.command();
+			std::string rconData = directive.message();
 			Scheduler::Once([address, s = std::move(rconData)]
 			{
 				RConSafeExecutor(address, s);
