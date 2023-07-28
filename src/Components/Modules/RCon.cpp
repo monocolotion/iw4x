@@ -5,6 +5,8 @@
 #include "RCon.hpp"
 #include "Party.hpp"
 
+#define LEGACY_RCON
+
 namespace Components
 {
 	std::unordered_map<std::uint32_t, int> RCon::RateLimit;
@@ -21,6 +23,8 @@ namespace Components
 
 	void RCon::AddCommands()
 	{
+
+#ifdef LEGACY_RCON
 		Command::Add("rcon", [](const Command::Params* params)
 		{
 			if (params->size() < 2)
@@ -63,6 +67,7 @@ namespace Components
 
 			Logger::Print("You are connected to an invalid server\n");
 		});
+#endif
 
 		Command::Add("rconSafe", [](const Command::Params* params)
 		{
@@ -83,6 +88,7 @@ namespace Components
 
 			if (!target.isValid())
 			{
+				Logger::Print("You are connected to an invalid server\n");
 				return;
 			}
 
@@ -251,6 +257,7 @@ namespace Components
 			return;
 		}
 
+#ifdef LEGACY_RCON
 		Network::OnClientPacket("rcon", [](const Network::Address& address, [[maybe_unused]] const std::string& data) -> void
 		{
 			const auto hash = std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&address.getIP().bytes[0]));
@@ -273,9 +280,16 @@ namespace Components
 				RConExecutor(address, s);
 			}, Scheduler::Pipeline::MAIN);
 		});
+#endif
 
 		Network::OnClientPacket("rconSafe", [](const Network::Address& address, [[maybe_unused]] const std::string& data) -> void
 		{
+			const auto hash = std::hash<std::uint32_t>()(*reinterpret_cast<const std::uint32_t*>(&address.getIP().bytes[0]));
+			if (!RConAddresses.empty() && std::ranges::find(RConAddresses, hash) == RConAddresses.end())
+			{
+				return;
+			}
+
 			const auto time = Game::Sys_Milliseconds();
 			if (!IsRateLimitCheckDisabled() && !RateLimitCheck(address, time))
 			{
