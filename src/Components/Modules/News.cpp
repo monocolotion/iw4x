@@ -2,7 +2,7 @@
 #include "Changelog.hpp"
 #include "News.hpp"
 
-#define NEWS_MOTD_DEFAULT "Welcome to IW4y Multiplayer!"
+#define NEWS_MOTD_DEFAULT "Welcome to IW4x Multiplayer!"
 
 namespace Components
 {
