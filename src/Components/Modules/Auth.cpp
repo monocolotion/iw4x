@@ -11,6 +11,8 @@
 
 namespace Components
 {
+	Dvar::Var Auth::SVSecurityLevel;
+
 	Auth::TokenIncrementing Auth::TokenContainer;
 
 	Utils::Cryptography::Token Auth::GuidToken;
@@ -44,7 +46,7 @@ namespace Components
 				if (mseconds < 0) mseconds = 0;
 			}
 
-			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", Utils::String::VA("Increasing security level from %d to %d (est. %s)",GetSecurityLevel(), TokenContainer.targetLevel, Utils::String::FormatTimeSpan(static_cast<int>(mseconds)).data()));
+			Localization::Set("MPUI_SECURITY_INCREASE_MESSAGE", std::format("Increasing security level from {} to {} (est. {})", GetSecurityLevel(), TokenContainer.targetLevel, Utils::String::FormatTimeSpan(static_cast<int>(mseconds)).data()));
 		}
 		else if (TokenContainer.thread.joinable())
 		{
@@ -59,11 +61,11 @@ namespace Components
 			{
 				if (TokenContainer.command.empty())
 				{
-					Game::ShowMessageBox(Utils::String::VA("Your new security level is %d", GetSecurityLevel()), "Success");
+					Game::ShowMessageBox(std::format("Your new security level is {}", GetSecurityLevel()), "Success");
 				}
 				else
 				{
-					Toast::Show("cardicon_locked", "Success", Utils::String::VA("Your new security level is %d", GetSecurityLevel()), 5000);
+					Toast::Show("cardicon_locked", "Success", std::format("Your new security level is {}", GetSecurityLevel()), 5000);
 					Command::Execute(TokenContainer.command, false);
 				}
 			}
@@ -111,7 +113,7 @@ namespace Components
 			return;
 		}
 
-		if (Steam::Enabled() && !Friends::IsInvisible() && !Dvar::Var("cl_anonymous").get<bool>() && Steam::Proxy::SteamUser_)
+		if (Steam::Enabled() && !Friends::IsInvisible() && !Friends::CLAnonymous.get<bool>() && Steam::Proxy::SteamUser_)
 		{
 			infostr.set("realsteamId", Utils::String::VA("%llX", Steam::Proxy::SteamUser_->GetSteamID().bits));
 		}
@@ -220,7 +222,7 @@ namespace Components
 
 			if (xuid != GetKeyHash(connectData.publickey()))
 			{
-				Network::Send(address, "error\nXUID doesn't match the certificate!");
+				Network::Send(address, "error\nXUID does not match the certificate!");
 				return;
 			}
 
@@ -235,12 +237,12 @@ namespace Components
 			}
 
 			// Verify the security level
-			auto ourLevel = Dvar::Var("sv_securityLevel").get<unsigned int>();
+			auto ourLevel = SVSecurityLevel.get<unsigned int>();
 			auto userLevel = GetZeroBits(connectData.token(), connectData.publickey());
 
 			if (userLevel < ourLevel)
 			{
-				Network::Send(address, Utils::String::VA("error\nYour security level (%d) is lower than the server's security level (%d)", userLevel, ourLevel));
+				Network::Send(address, std::format("error\nYour security level ({}) is lower than the server's security level ({})", userLevel, ourLevel));
 				return;
 			}
 
@@ -421,7 +423,7 @@ namespace Components
 				continue;
 			}
 
-			uint8_t value = static_cast<uint8_t>(hash[i]);
+			const auto value = static_cast<std::uint8_t>(hash[i]);
 			for (int j = 7; j >= 0; --j)
 			{
 				if ((value >> j) & 1)
@@ -486,7 +488,7 @@ namespace Components
 		Scheduler::Loop(Frame, Scheduler::Pipeline::MAIN);
 
 		// Register dvar
-		Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::DVAR_SERVERINFO, "Security level for GUID certificates (POW)");
+		SVSecurityLevel = Dvar::Register<int>("sv_securityLevel", 23, 0, 512, Game::DVAR_SERVERINFO, "Security level for GUID certificates (POW)");
 
 		// Install registration hook
 		Utils::Hook(0x6265F9, DirectConnectStub, HOOK_JUMP).install()->quick();

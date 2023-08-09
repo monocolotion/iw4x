@@ -25,10 +25,8 @@ namespace Components
 		static void IncrementToken(Utils::Cryptography::Token& token, Utils::Cryptography::Token& computeToken, const std::string& publicKey, uint32_t zeroBits, bool* cancel = nullptr, uint64_t* count = nullptr);
 
 	private:
-
-		class TokenIncrementing
+		struct TokenIncrementing
 		{
-		public:
 			bool cancel;
 			bool generating;
 			std::thread thread;
@@ -37,6 +35,8 @@ namespace Components
 			std::string command;
 			uint64_t hashes;
 		};
+
+		static Dvar::Var SVSecurityLevel;
 
 		static TokenIncrementing TokenContainer;
 

@@ -22,10 +22,10 @@ namespace Steam
 	unsigned int Utils::GetServerRealTime()
 	{
 		static std::optional<unsigned int> timeDelta;
-		if(!timeDelta.has_value())
+		if (!timeDelta.has_value())
 		{
 			unsigned int steamTime = static_cast<unsigned int>(time(nullptr));
-			if(Steam::Proxy::SteamUtils)
+			if (Steam::Proxy::SteamUtils)
 			{
 				steamTime = Steam::Proxy::SteamUtils->GetServerRealTime();
 			}
