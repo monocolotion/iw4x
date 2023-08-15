@@ -332,9 +332,6 @@ namespace Components
 		// hopefully allow alt-tab during game, used at least in alt-enter handling
 		Utils::Hook::Set<DWORD>(0x45ACE0, 0xC301B0);
 
-		// fs_basegame
-		Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
-
 		// sv_hostname
 		Utils::Hook::Set<const char*>(0x4D378B, "IW4Host");
 

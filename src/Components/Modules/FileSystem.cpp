@@ -240,20 +240,28 @@ namespace Components
 		MemAllocator.free(buffer);
 	}
 
+#define REGISTER_DIR(dvar, folder) \
+	{ \
+		const auto* string = (*(dvar))->current.string; \
+		if (*(string)) \
+		{ \
+			Game::FS_AddLocalizedGameDirectory((string), (folder)); \
+		} \
+	}
+
 	void FileSystem::RegisterFolder(const char* folder)
 	{
-		const std::string fs_cdpath = (*Game::fs_cdpath)->current.string;
-		const std::string fs_basepath = (*Game::fs_basepath)->current.string;
-		const std::string fs_homepath = (*Game::fs_homepath)->current.string;
-
-		if (!fs_cdpath.empty())   Game::FS_AddLocalizedGameDirectory(fs_cdpath.data(),   folder);
-		if (!fs_basepath.empty()) Game::FS_AddLocalizedGameDirectory(fs_basepath.data(), folder);
-		if (!fs_homepath.empty()) Game::FS_AddLocalizedGameDirectory(fs_homepath.data(), folder);
+		REGISTER_DIR(Game::fs_cdpath, folder);
+		REGISTER_DIR(Game::fs_basepath, folder);
+		REGISTER_DIR(Game::fs_homepath, folder);
 	}
 
 	void FileSystem::RegisterFolders()
 	{
 		RegisterFolder("userraw");
+
+		// AlterWare launcher :mxve:
+		RegisterFolder("data");
 	}
 
 	__declspec(naked) void FileSystem::StartupStub()
@@ -345,6 +353,9 @@ namespace Components
 
 		// Register additional folders
 		Utils::Hook(0x482647, StartupStub, HOOK_JUMP).install()->quick();
+
+		// fs_basegame
+		Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
 
 		// exec whitelist removal
 		Utils::Hook::Nop(0x609685, 5);

@@ -656,6 +656,18 @@ namespace Game
 	struct MenuEventHandlerSet;
 	struct menuDef_t;
 
+	enum EventType
+	{
+		EVENT_UNCONDITIONAL = 0x0,
+		EVENT_IF = 0x1,
+		EVENT_ELSE = 0x2,
+		EVENT_SET_LOCAL_VAR_BOOL = 0x3,
+		EVENT_SET_LOCAL_VAR_INT = 0x4,
+		EVENT_SET_LOCAL_VAR_FLOAT = 0x5,
+		EVENT_SET_LOCAL_VAR_STRING = 0x6,
+		EVENT_COUNT = 0x7,
+	};
+
 	struct CmdArgs
 	{
 		int nesting;

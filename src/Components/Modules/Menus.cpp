@@ -4,6 +4,10 @@
 #define MAX_SOURCEFILES	64
 #define DEFINEHASHSIZE 1024
 
+#define IMAGE_TRACK_MAGIC 2023
+
+#define ITEM_TYPE_LISTBOX 6 // scrollable list
+
 namespace Components
 {
 	std::vector<std::string> Menus::CustomMenus;
@@ -181,6 +185,8 @@ namespace Components
 			return nullptr;
 		}
 
+		menu->imageTrack = IMAGE_TRACK_MAGIC;
+
 		OverrideMenu(menu);
 		RemoveMenu(menu->window.name);
 		MenuList[menu->window.name] = menu;
@@ -220,7 +226,7 @@ namespace Components
 				if (!_stricmp(token.string, "menudef"))
 				{
 					auto* menudef = ParseMenu(handle);
-					if (menudef) menus.emplace_back(std::make_pair(true, menudef)); // Custom menu
+					if (menudef) menus.emplace_back(true, menudef); // Custom menu
 				}
 			}
 
@@ -302,7 +308,7 @@ namespace Components
 
 		if (menus.empty())
 		{
-			menus.emplace_back(std::make_pair(false, menudef)); // Native menu
+			menus.emplace_back(false, menudef); // Native menu
 		}
 
 		return menus;
@@ -374,7 +380,7 @@ namespace Components
 			// Remove the menu if it has been loaded twice
 			for (auto& newMenu : newMenus)
 			{
-				if (i->second->window.name == std::string(newMenu.second->window.name))
+				if (std::strcmp(i->second->window.name, newMenu.second->window.name) == 0)
 				{
 					RemoveMenu(i->second);
 
@@ -791,6 +797,16 @@ namespace Components
 
 	Menus::Menus()
 	{
+		static_assert(offsetof(Game::UiContext, menuCount) == 0xA38);
+		static_assert(offsetof(Game::UiContext, Menus) == 0x38);
+
+		static_assert(offsetof(Game::menuDef_t, itemCount) == 0xAC);
+
+		static_assert(offsetof(Game::itemDef_s, dataType) == 0xBC);
+		static_assert(offsetof(Game::itemDef_s, typeData) == 0x134);
+		static_assert(offsetof(Game::itemDef_s, floatExpressionCount) == 0x13C);
+		static_assert(offsetof(Game::itemDef_s, floatExpressions) == 0x140);
+
 		menuParseKeywordHash = reinterpret_cast<Game::KeywordHashEntry<Game::menuDef_t, 128, 3523>**>(0x63AE928);
 
 		if (Dedicated::IsEnabled()) return;
@@ -798,18 +814,6 @@ namespace Components
 		// Intercept asset finding
 		AssetHandler::OnFind(Game::ASSET_TYPE_MENU, MenuFindHook);
 		AssetHandler::OnFind(Game::ASSET_TYPE_MENULIST, MenuListFindHook);
-
-		// Don't open connect menu
-		// Utils::Hook::Nop(0x428E48, 5);
-
-		// Use the connect menu open call to update server motds
-		Utils::Hook(0x428E48, []
-		{
-			if (!Party::GetMotd().empty() && Party::Target() == *Game::connectedHost)
-			{
-				Dvar::Var("didyouknow").set(Party::GetMotd());
-			}
-		}, HOOK_CALL).install()->quick();
 
 		// Intercept menu painting
 		Utils::Hook(0x4FFBDF, IsMenuVisible, HOOK_CALL).install()->quick();
@@ -838,29 +842,6 @@ namespace Components
 			}
 
 			Game::Menus_OpenByName(Game::uiContext, params->get(1));
-		});
-
-		Command::Add("reloadmenus", []()
-		{
-			// Close all menus
-			Game::Menus_CloseAll(Game::uiContext);
-
-			// Free custom menus (Get pranked)
-			FreeEverything();
-
-			// Only disconnect if in-game, context is updated automatically!
-			if (Game::CL_IsCgameInitialized())
-			{
-				Game::Cbuf_AddText(0, "disconnect\n");
-			}
-			else
-			{
-				// Reinitialize ui context
-				Utils::Hook::Call<void()>(0x401700)();
-
-				// Reopen main menu
-				Game::Menus_OpenByName(Game::uiContext, "main_text");
-			}
 		});
 
 		// Define custom menus here
