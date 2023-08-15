@@ -77,4 +77,7 @@ jobs:
         run: ssh-keyscan -H ${{ secrets.DIAMANTE_MASTER_SSH_ADDRESS }} >> ~/.ssh/known_hosts
 
       - name: Upload iw4x-client binary
-        run: rsync -avz iw4x.dll ${{ secrets.DIAMANTE_MASTER_SSH_USER }}@${{ secrets.DIAMANTE_MASTER_SSH_ADDRESS }}:${{ env.DIAMANTE_MASTER_PATH }}/iw4x/
+        run: rsync -avz iw4x.dll ${{ secrets.DIAMANTE_MASTER_SSH_USER }}@${{ secrets.DIAMANTE_MASTER_SSH_ADDRESS }}:${{ env.DIAMANTE_MASTER_PATH }}/iw4/
+
+      - name: Publish changes
+        run: ssh ${{ secrets.DIAMANTE_MASTER_SSH_USER }}@${{ secrets.DIAMANTE_MASTER_SSH_ADDRESS }} ${{ secrets.DIAMANTE_SSH_CHANGE_PUBLISH_COMMAND }}
