@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/).
 
+## r4375 - 2023-08-16
+
+### Added
+
+- Integrate IW4x with the AlterWare launcher
+- Add cryptographically secure RCon compatible with IW4M tool using the RSA algorithm
+- Add `/serverlist` TCP endpoint to the embedded web server
+
+### Changed
+
+- The `iw4x` folder is no longer in use. It will be deleted and replaced automatically by the `data` folder
+
+### Fixed
+
+- Remove dead links from the code
+- Fix the Node System not working properly
+- Fix Chat component updating the file containing "mute" data even though no update occurred
+
 ## r4303 - 2023-05-17
 
 ### Added

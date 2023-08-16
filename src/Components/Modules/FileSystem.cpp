@@ -258,10 +258,11 @@ namespace Components
 
 	void FileSystem::RegisterFolders()
 	{
-		RegisterFolder("userraw");
-
 		// AlterWare launcher :mxve:
 		RegisterFolder("data");
+
+		std::error_code e;
+		std::filesystem::remove_all("iw4x", e);
 	}
 
 	__declspec(naked) void FileSystem::StartupStub()
@@ -355,7 +356,7 @@ namespace Components
 		Utils::Hook(0x482647, StartupStub, HOOK_JUMP).install()->quick();
 
 		// fs_basegame
-		Utils::Hook::Set<const char*>(0x6431D1, BASEGAME);
+		Utils::Hook::Set<const char*>(0x6431D1, "userraw");
 
 		// exec whitelist removal
 		Utils::Hook::Nop(0x609685, 5);

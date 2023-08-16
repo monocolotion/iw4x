@@ -123,7 +123,7 @@ namespace Components
 		};
 
 		// register custom aspect ratio dvar
-		QuickPatch::r_customAspectRatio = Dvar::Register<float>("r_customAspectRatio",
+		r_customAspectRatio = Dvar::Register<float>("r_customAspectRatio",
 			16.0f / 9.0f, 4.0f / 3.0f, 63.0f / 9.0f, flags,
 			"Screen aspect ratio. Divide the width by the height in order to get the aspect ratio value. For example: 16 / 9 = 1,77");
 
@@ -300,7 +300,7 @@ namespace Components
 	QuickPatch::QuickPatch()
 	{
 		// Filtering any mapents that is intended for Spec:Ops gamemode (CODO) and prevent them from spawning
-		Utils::Hook(0x5FBD6E, QuickPatch::IsDynClassname_Stub, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5FBD6E, IsDynClassname_Stub, HOOK_CALL).install()->quick();
 
 		// Hook escape handling on open console to change behaviour to close the console instead of only canceling autocomplete
 		Utils::Hook(0x4F66A3, CL_KeyEvent_ConsoleEscape_Stub, HOOK_JUMP).install()->quick();
@@ -309,22 +309,22 @@ namespace Components
 		Game::Dvar_RegisterFloat("scr_intermissionTime", 10, 0, 120, Game::DVAR_NONE, "Time in seconds before match server loads the next map");
 
 		g_antilag = Game::Dvar_RegisterBool("g_antilag", true, Game::DVAR_CODINFO, "Perform antilag");
-		Utils::Hook(0x5D6D56, QuickPatch::ClientEventsFireWeapon_Stub, HOOK_JUMP).install()->quick();
-		Utils::Hook(0x5D6D6A, QuickPatch::ClientEventsFireWeaponMelee_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5D6D56, ClientEventsFireWeapon_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x5D6D6A, ClientEventsFireWeaponMelee_Stub, HOOK_JUMP).install()->quick();
 
 		// Add ultrawide support
-		Utils::Hook(0x51B13B, QuickPatch::Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
-		Utils::Hook(0x5063F3, QuickPatch::SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x51B13B, Dvar_RegisterAspectRatioDvar, HOOK_CALL).install()->quick();
+		Utils::Hook(0x5063F3, SetAspectRatio_Stub, HOOK_JUMP).install()->quick();
 
-		Utils::Hook(0x4FA448, QuickPatch::Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4FA448, Dvar_RegisterConMinicon, HOOK_CALL).install()->quick();
 
-		Utils::Hook::Set<void(*)(Game::XAssetHeader, void*)>(0x51FCDD, QuickPatch::R_AddImageToList_Hk);
+		Utils::Hook::Set<void(*)(Game::XAssetHeader, void*)>(0x51FCDD,R_AddImageToList_Hk);
 
 		Utils::Hook::Set<const char*>(0x41DB8C, "iw4-sp.exe");
-		Utils::Hook(0x4D6989, QuickPatch::Sys_SpawnQuitProcess_Hk, HOOK_CALL).install()->quick();
+		Utils::Hook(0x4D6989, Sys_SpawnQuitProcess_Hk, HOOK_CALL).install()->quick();
 
 		// Fix crash as nullptr goes unchecked
-		Utils::Hook(0x437CAD, QuickPatch::SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
+		Utils::Hook(0x437CAD, SND_GetAliasOffset_Stub, HOOK_JUMP).install()->quick();
 
 		// remove system pre-init stuff (improper quit, disk full)
 		Utils::Hook::Set<BYTE>(0x411350, 0xC3);
@@ -485,7 +485,7 @@ namespace Components
 			}
 		});
 
-		Command::Add("unlockstats", QuickPatch::UnlockStats);
+		Command::Add("unlockstats", UnlockStats);
 
 		Command::Add("dumptechsets", [](const Command::Params* param)
 		{
