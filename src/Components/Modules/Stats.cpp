@@ -134,12 +134,10 @@ namespace Components
 		// Allow playerdata to be changed while connected to a server
 		Utils::Hook::Set<BYTE>(0x4376FD, 0xEB);
 
-		// TODO: Allow playerdata changes in setPlayerData UI script.
-
 		// Rename stat file
 		Utils::Hook::SetString(0x71C048, "iw4x.stat");
 
-		// Patch stats steamid
+		// Patch stats steam id
 		Utils::Hook::Nop(0x682EBF, 20);
 		Utils::Hook::Nop(0x6830B1, 20);
 
@@ -149,6 +147,10 @@ namespace Components
 
 		// Never use remote stat saving
 		Utils::Hook::Set<BYTE>(0x682F39, 0xEB);
+
+		// Don't delete config files if corrupted
+		Utils::Hook::Set<BYTE>(0x47DCB3, 0xEB);
+		Utils::Hook::Set<BYTE>(0x4402B6, 0);
 
 		// Don't create stat backup
 		Utils::Hook::Nop(0x402CE6, 2);

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/).
 
+## r4377 - 2023-08-17
+
+### Fixed
+
+- Fix bug with the config file constantly resetting
+
 ## r4376 - 2023-08-17
 
 ### Fixed
