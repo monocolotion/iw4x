@@ -389,7 +389,7 @@ namespace Components
 		AssertOffset(Game::clientConnection_t, demofile, 0x401A4);
 		AssertOffset(Game::clientConnection_t, serverMessageSequence, 0x2013C);
 
-		CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", true, Game::DVAR_ARCHIVE, "Automatically record games");
+		CLAutoRecord = Dvar::Register<bool>("cl_autoRecord", false, Game::DVAR_ARCHIVE, "Automatically record games");
 		CLDemosKeep = Dvar::Register<int>("cl_demosKeep", 30, 1, 999, Game::DVAR_ARCHIVE, "How many demos to keep with autorecord");
 
 		Utils::Hook(0x5A8370, GamestateWriteStub, HOOK_CALL).install()->quick();

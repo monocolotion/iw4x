@@ -13,8 +13,6 @@ namespace Components
 	std::recursive_mutex Logger::LoggingMutex;
 	std::vector<Network::Address> Logger::LoggingAddresses[2];
 
-	Dvar::Var Logger::IW4x_oneLog;
-
 	void(*Logger::PipeCallback)(const std::string&) = nullptr;;
 
 	bool Logger::IsConsoleReady()
@@ -233,45 +231,6 @@ namespace Components
 		MessageQueue.push_back(message);
 	}
 
-	void Logger::RedirectOSPath(const char* file, char* folder)
-	{
-		const auto* g_log = (*Game::g_log) ? (*Game::g_log)->current.string : "";
-
-		if (std::strcmp(g_log, file) == 0)
-		{
-			if (std::strcmp(folder, "userraw") != 0)
-			{
-				if (IW4x_oneLog.get<bool>())
-				{
-					strncpy_s(folder, 256, "userraw", _TRUNCATE);
-				}
-			}
-		}
-	}
-
-	__declspec(naked) void Logger::BuildOSPath_Stub()
-	{
-		__asm
-		{
-			pushad
-
-			push [esp + 20h + 8h]
-			push [esp + 20h + 10h]
-			call RedirectOSPath
-			add esp, 8h
-
-			popad
-
-			mov eax, [esp + 8h]
-			push ebp
-			push esi
-			mov esi, [esp + 0Ch]
-
-			push 64213Fh
-			retn
-		}
-	}
-
 	void Logger::LSP_LogString_Stub([[maybe_unused]] int localControllerIndex, const char* string)
 	{
 		NetworkLog(string, false);
@@ -396,9 +355,6 @@ namespace Components
 
 	Logger::Logger()
 	{
-		IW4x_oneLog = Dvar::Register<bool>("iw4x_onelog", false, Game::DVAR_LATCH, "Only write the game log to the 'userraw' OS folder");
-		Utils::Hook(0x642139, BuildOSPath_Stub, HOOK_JUMP).install()->quick();
-
 		Scheduler::Loop(Frame, Scheduler::Pipeline::SERVER);
 
 		Utils::Hook(Game::G_LogPrintf, G_LogPrintf_Hk, HOOK_JUMP).install()->quick();

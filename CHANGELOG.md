@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.3.0/).
 
+## r4376 - 2023-08-17
+
+### Fixed
+
+- Fix bug with the file system
+
 ## r4375 - 2023-08-16
 
 ### Added
@@ -21,6 +27,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Remove dead links from the code
 - Fix the Node System not working properly
 - Fix Chat component updating the file containing "mute" data even though no update occurred
+
+### Removed
+
+- ZoneBuilder was temporarily removed
 
 ## r4303 - 2023-05-17
 
@@ -321,7 +331,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Fixed
 
-- Fixed `startSingleplayer` command (#404)
+- Fix `startSingleplayer` command (#404)
 - General stability update
 
 ### Known issues
@@ -350,14 +360,14 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 ### Fixed
 
 - Node system works again for clients (#331)
-- Fixed output of `g_log_list` & `log_list` (#336)
-- Fixed toast notifications (#337)
-- Fixed `banClient` command (#311)
-- Fixed singleplayer maps crashing in renderer module (#340)
-- Fixed muzzle flash on COD:OL maps (#352)
+- Fix output of `g_log_list` & `log_list` (#336)
+- Fix toast notifications (#337)
+- Fix `banClient` command (#311)
+- Fix singleplayer maps crashing in renderer module (#340)
+- Fix muzzle flash on COD:OL maps (#352)
 - Server commands are no longer being registered twice (#339)
-- Fixed issue where grenades and projectiles had no bounce sounds (#368)
-- Fixed issue that could cause the game to crash when loading CoD4 maps (#372)
+- Fix issue where grenades and projectiles had no bounce sounds (#368)
+- Fix issue that could cause the game to crash when loading CoD4 maps (#372)
 
 ### Removed
 
@@ -420,8 +430,8 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Fixed
 
-- Knife charge is fixed for controller players (#259)
-- Fixed internet, local and favorites filters (#260)
+- Fix knife charge for controller players (#259)
+- Fix internet, local and favorites filters (#260)
 - `sv_lanOnly` Dvar now prevents the server from sending heartbeats to master if set to true (#246)
 
 ### Known issues
@@ -453,10 +463,10 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Fixed
 
-- Fixed issue with mouse acceleration when polling rate is greater than 125Hz (#230)
-- Fixed issue with player speed caused by sprinting from the prone position (#232)
-- Fixed client crash when `cg_chatHeight` was set to 0 (#237)
-- Fixed GSC function `Scr_TableLookupIStringByRow` (#162)
+- Fix issue with mouse acceleration when polling rate is greater than 125Hz (#230)
+- Fix issue with player speed caused by sprinting from the prone position (#232)
+- Fix client crash when `cg_chatHeight` was set to 0 (#237)
+- Fix GSC function `Scr_TableLookupIStringByRow` (#162)
 
 ### Known issues
 
@@ -471,7 +481,7 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 - Add controller support (#75)
 - Add aim assist for controllers (#75)
 - Unlock `camera_thirdPersonCrosshairOffset` Dvar (#68)
-- Add support for building custom Fonts with Zonebuilder (#88)
+- Add support for building custom Fonts with ZoneBuilder (#88)
 - Add colorblind friendly team colors (#101)
 - Add emojis based on title cards and emblems to use in the chat and server names Example: `:nuke:` (#130)
 - Upon leaving a server 'archive' dvars (saved in the config file) will be reset to the value they had prior to joining the server (#134)
@@ -513,14 +523,14 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Fixed
 
-- Fixed issue where CoD:O DLC Maps caused DirectX crash following `vid_restart` (#37)
-- Fixes and improvements to Zonebuilder
-- Fixed issue where the game froze following base game script throwing an error (#74)
-- Fixed RCon on party servers (#91 - #95)
-- Fixed slow motion during final kill cams (#111 - #107)
-- Fixed sound issue that causes the game to freeze (#106)
-- Fixed issue where materials strings found in hostnames, player names, chat etc. caused the game to crash (#113)
-- Fixed issue with servers displaying an invalid player count (#113)
+- Fix issue where CoD:Online DLC Maps caused DirectX crash following `vid_restart` (#37)
+- Fixes and improvements to ZoneBuilder
+- Fix issue where the game froze following base game script throwing an error (#74)
+- Fix RCon on party servers (#91 - #95)
+- Fix slow motion during final kill cams (#111 - #107)
+- Fix sound issue that causes the game to freeze (#106)
+- Fix issue where materials strings found in hostnames, player names, chat etc. caused the game to crash (#113)
+- Fix issue with servers displaying an invalid player count (#113)
 
 ### Known issues
 
@@ -564,11 +574,11 @@ The format is based on [Keep a Changelog v0.3.0](http://keepachangelog.com/en/0.
 
 ### Fixed
 
-- Fixed a node system related crash (#45)
-- Fixed an issue that made dedicated servers crash when info was requested during map rotation (#43)
-- Fixed an issue where the game was trying to decrypt GSC files which caused it to crash when loading mods (#35)
-- Fixed an issue causing the game to crash when Steam was running in the background (#56)
-- Fixed slow download speed when using fast download
+- Fix a node system related crash (#45)
+- Fix an issue that made dedicated servers crash when info was requested during map rotation (#43)
+- Fix an issue where the game was trying to decrypt GSC files which caused it to crash when loading mods (#35)
+- Fix an issue causing the game to crash when Steam was running in the background (#56)
+- Fix slow download speed when using fast download
 
 ### Removed
 
@@ -881,7 +891,7 @@ This is the second public Alpha version.
     - Shipment (mp_shipment/mp_shipment_long)
 
 - Add `sv_motd` Dvar for server owners to set custom motd (will be visible in the loadscreen).
-- Add Zonebuilder support for sounds and fx.
+- Add ZoneBuilder support for sounds and fx.
 - Add command setviewpos.
 - Add high-definition loadscreens.
 
@@ -894,7 +904,7 @@ This is the second public Alpha version.
 ### Fixed
 
 - Fix crash when using the Harrier killstreak.
-- Disable code that downloads news/changelog when in zonebuilder mode.
+- Disable code that downloads news/changelog when in ZoneBuilder mode.
 - Fix freeze on game shutdown.
 - Disable unlockstats while ingame to prevent a crash.
 
@@ -920,7 +930,7 @@ This is the first public Alpha version.
 
 ### Fixed
 
-- Fix techniques in Zonebuilder.
+- Fix techniques in ZoneBuilder.
 - Fix possible memory leak.
 - Fix timeout bug when connecting to server via iw4x link.
 - Partially fix deadlock in decentralized networking code.

@@ -9,6 +9,11 @@
 - Update the submodules and run `premake5 vs2022` or simply use the delivered `generate.bat`.
 - Build via solution file in `build\iw4x.sln`.
 
+## AlterWare
+
+It is recommended to use this IW4x client with the AlterWare launcher.
+Find out more at https://alterware.dev/.
+
 ## Premake arguments
 
 | Argument                    | Description                                    |

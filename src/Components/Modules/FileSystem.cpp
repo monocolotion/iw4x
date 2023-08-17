@@ -10,10 +10,12 @@ namespace Components
 	{
 		std::lock_guard _(FSMutex);
 
-		assert(!filePath.empty());
+		assert(!this->filePath.empty());
+
+		this->buffer.clear();
 
 		int handle;
-		const auto len = Game::FS_FOpenFileReadForThread(filePath.data(), &handle, thread);
+		const auto len = Game::FS_FOpenFileReadForThread(this->filePath.data(), &handle, thread);
 
 		if (!handle)
 		{
@@ -22,9 +24,7 @@ namespace Components
 
 		auto* buf = AllocateFile(len + 1);
 
-		[[maybe_unused]] auto bytesRead = Game::FS_Read(buf, len, handle);
-
-		assert(bytesRead == len);
+		Game::FS_Read(buf, len, handle);
 
 		buf[len] = '\0';
 
@@ -153,7 +153,7 @@ namespace Components
 			CoTaskMemFree(path);
 		});
 
-		return std::filesystem::path(path);
+		return std::filesystem::path{ path };
 	}
 
 	std::vector<std::string> FileSystem::GetFileList(const std::string& path, const std::string& extension)
@@ -259,7 +259,7 @@ namespace Components
 	void FileSystem::RegisterFolders()
 	{
 		// AlterWare launcher :mxve:
-		RegisterFolder("data");
+		RegisterFolder("userraw");
 
 		std::error_code e;
 		std::filesystem::remove_all("iw4x", e);
@@ -356,7 +356,7 @@ namespace Components
 		Utils::Hook(0x482647, StartupStub, HOOK_JUMP).install()->quick();
 
 		// fs_basegame
-		Utils::Hook::Set<const char*>(0x6431D1, "userraw");
+		Utils::Hook::Set<const char*>(0x6431D1, "data");
 
 		// exec whitelist removal
 		Utils::Hook::Nop(0x609685, 5);

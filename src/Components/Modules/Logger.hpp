@@ -130,8 +130,6 @@ namespace Components
 		static std::recursive_mutex LoggingMutex;
 		static std::vector<Network::Address> LoggingAddresses[2];
 
-		static Dvar::Var IW4x_oneLog;
-
 		static void(*PipeCallback)(const std::string&);
 
 		static void MessagePrint(int channel, const std::string& msg);
@@ -142,9 +140,6 @@ namespace Components
 		static void PrintMessage_Stub();
 		static void PrintMessagePipe(const char* data);
 		static void EnqueueMessage(const std::string& message);
-
-		static void BuildOSPath_Stub();
-		static void RedirectOSPath(const char* file, char* folder);
 
 		static void NetworkLog(const char* data, bool gLog);
 
