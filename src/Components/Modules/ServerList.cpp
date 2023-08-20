@@ -1,5 +1,6 @@
 #include <STDInclude.hpp>
 #include <Utils/InfoString.hpp>
+#include <Utils/WebIO.hpp>
 
 #include "Discovery.hpp"
 #include "Events.hpp"
@@ -8,6 +9,10 @@
 #include "ServerList.hpp"
 #include "TextRenderer.hpp"
 #include "UIFeeder.hpp"
+
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
 
 namespace Components
 {
@@ -22,6 +27,8 @@ namespace Components
 	std::vector<ServerList::ServerInfo> ServerList::FavouriteList;
 
 	std::vector<unsigned int> ServerList::VisibleList;
+
+	bool ServerList::UseMasterServer = false;
 
 	Dvar::Var ServerList::UIServerSelected;
 	Dvar::Var ServerList::UIServerSelectedMap;
@@ -270,6 +277,62 @@ namespace Components
 		SortList();
 	}
 
+	void ServerList::ParseNewMasterServerResponse(const std::string& servers)
+	{
+		std::lock_guard _(RefreshContainer.mutex);
+
+		rapidjson::Document doc{};
+		const rapidjson::ParseResult result = doc.Parse(servers);
+		if (!result || !doc.IsObject())
+		{
+			UseMasterServer = false;
+			Logger::Print("Unable to parse JSON response. Using the Node System\n");
+			return;
+		}
+
+		if (!doc.HasMember("servers"))
+		{
+			UseMasterServer = false;
+			Logger::Print("Unable to parse JSON response: we were unable to find any server. Using the Node System\n");
+			return;
+		}
+
+		const rapidjson::Value& list = doc["servers"];
+		if (!list.IsArray() || list.Empty())
+		{
+			UseMasterServer = false;
+			Logger::Print("Unable to parse JSON response: we were unable to find any server. Using the Node System\n");
+			return;
+		}
+
+		Logger::Print("Response from the master server contains {} servers\n", list.Size());
+
+		std::size_t count = 0;
+
+		for (const auto& entry : list.GetArray())
+		{
+			if (!entry.HasMember("ip") || !entry.HasMember("port"))
+			{
+				continue;
+			}
+
+			if (!entry["ip"].IsString() || !entry["port"].IsInt())
+			{
+				continue;
+			}
+
+			// Using VA because it's faster
+			Network::Address server(Utils::String::VA("%s:%u", entry["ip"].GetString(), entry["port"].GetInt()));
+			server.setType(Game::NA_IP); // Just making sure...
+
+			InsertRequest(server);
+			++count;
+		}
+
+		UseMasterServer = true;
+		Logger::Print("Response from the master server was successfully parsed. We got {} servers\n", count);
+	}
+
 	void ServerList::Refresh([[maybe_unused]] const UIScript::Token& token, [[maybe_unused]] const Game::uiInfo_s* info)
 	{
 		Dvar::Var("ui_serverSelected").set(false);
@@ -289,6 +352,30 @@ namespace Components
 		if (IsOfflineList())
 		{
 			Discovery::Perform();
+		}
+		else if (IsOnlineList())
+		{
+			const auto masterPort = (*Game::com_masterPort)->current.integer;
+			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
+
+			RefreshContainer.awatingList = true;
+			RefreshContainer.awaitTime = Game::Sys_Milliseconds();
+
+			const auto* url = "http://iw4x.plutools.pw/v1/servers/iw4x";
+			const auto reply = Utils::WebIO("IW4x", url).setTimeout(5000)->get();
+			if (reply.empty())
+			{
+				Logger::Print("Response from {} was empty or the request timed out. Using the Node System\n", url);
+				UseMasterServer = false;
+				return;
+			}
+
+			RefreshContainer.awatingList = false;
+
+			ParseNewMasterServerResponse(reply);
+
+			// TODO: Figure what to do with this
+			RefreshContainer.host = Network::Address(std::format("{}:{}", masterServerName, masterPort));
 		}
 		else if (IsFavouriteList())
 		{
@@ -700,7 +787,9 @@ namespace Components
 			if (Game::Sys_Milliseconds() - RefreshContainer.awaitTime > 5000)
 			{
 				RefreshContainer.awatingList = false;
+				Logger::Print("We haven't received a response from the master within {} seconds!\n", (Game::Sys_Milliseconds() - RefreshContainer.awaitTime) / 1000);
 
+				UseMasterServer = false;
 				Node::Synchronize();
 			}
 		}
