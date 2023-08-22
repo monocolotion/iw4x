@@ -128,10 +128,6 @@ namespace Components
 
 		std::vector<std::string> nodes;
 
-		static Utils::Time::Interval interval;
-		if (!force && !interval.elapsed(1min)) return;
-		interval.update();
-
 		Mutex.lock();
 
 		for (auto& node : Nodes)
