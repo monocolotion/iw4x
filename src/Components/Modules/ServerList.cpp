@@ -329,6 +329,13 @@ namespace Components
 			++count;
 		}
 
+		if (!count)
+		{
+			UseMasterServer = false;
+			Logger::Print("Despite receiving what looked like a valid response from the master server, we got {} servers. Using the Node System\n", count);
+			return;
+		}
+
 		UseMasterServer = true;
 		Logger::Print("Response from the master server was successfully parsed. We got {} servers\n", count);
 	}
@@ -355,7 +362,7 @@ namespace Components
 		}
 		else if (IsOnlineList())
 		{
-			const auto masterPort = (*Game::com_masterPort)->current.integer;
+			const auto masterPort = (*Game::com_masterPort)->current.unsignedInt;
 			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
 
 			RefreshContainer.awatingList = true;
@@ -374,7 +381,7 @@ namespace Components
 
 			ParseNewMasterServerResponse(reply);
 
-			// TODO: Figure what to do with this
+			// TODO: Figure out what to do with this
 			RefreshContainer.host = Network::Address(std::format("{}:{}", masterServerName, masterPort));
 		}
 		else if (IsFavouriteList())

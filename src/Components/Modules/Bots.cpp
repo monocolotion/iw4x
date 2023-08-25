@@ -59,7 +59,7 @@ namespace Components
 
 	void Bots::UpdateBotNames()
 	{
-		const auto masterPort = (*Game::com_masterPort)->current.integer;
+		const auto masterPort = (*Game::com_masterPort)->current.unsignedInt;
 		const auto* masterServerName = (*Game::com_masterServerName)->current.string;
 
 		Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
@@ -498,7 +498,7 @@ namespace Components
 
 		Network::OnClientPacket("getbotsResponse", [](const Network::Address& address, const std::string& data)
 		{
-			const auto masterPort = (*Game::com_masterPort)->current.integer;
+			const auto masterPort = (*Game::com_masterPort)->current.unsignedInt;
 			const auto* masterServerName = (*Game::com_masterServerName)->current.string;
 
 			Network::Address master(Utils::String::VA("%s:%u", masterServerName, masterPort));
