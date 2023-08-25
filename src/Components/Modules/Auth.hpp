@@ -45,6 +45,7 @@ namespace Components
 		static Utils::Cryptography::ECC::Key GuidKey;
 		static std::vector<std::uint64_t> BannedUids;
 
+		static bool IsReserved;
 		static bool HasAccessToReservedSlot;
 		
 		static void SendConnectDataStub(Game::netsrc_t sock, Game::netadr_t adr, const char* format, int len);

@@ -3,12 +3,15 @@
 #include "Bots.hpp"
 #include "ClanTags.hpp"
 #include "Events.hpp"
+#include "Reserved.hpp"
 
 #include "GSC/Script.hpp"
 
 // From Quake-III
 #define ANGLE2SHORT(x) ((int)((x) * (USHRT_MAX + 1) / 360.0f) & USHRT_MAX)
 #define SHORT2ANGLE(x) ((x)* (360.0f / (USHRT_MAX + 1)))
+
+#define NAMELESS_NOOBS
 
 namespace Components
 {
@@ -398,23 +401,61 @@ namespace Components
 		return i == *Game::svs_clientCount;
 	}
 
-	void Bots::SV_DirectConnect_Full_Check()
+	void Bots::SV_DirectConnect_Full_Check(const bool isReserved)
 	{
-		if (!sv_replaceBots->current.enabled || !IsFull())
+		if (!IsFull())
 		{
 			return;
 		}
 
-		for (auto i = 0; i < (*Game::sv_maxclients)->current.integer; ++i)
+#ifndef NAMELESS_NOOBS
+		if (sv_replaceBots->current.enabled)
+#endif
 		{
-			auto* cl = &Game::svs_clients[i];
-			if (cl->bIsTestClient)
+			// First kick test clients
+			for (auto i = 0; i < (*Game::sv_maxclients)->current.integer; ++i)
 			{
-				Game::SV_DropClient(cl, "EXE_DISCONNECTED", false);
-				cl->header.state = Game::CS_FREE;
-				return;
+				auto* cl = &Game::svs_clients[i];
+				if (cl->bIsTestClient)
+				{
+					Game::SV_DropClient(cl, "EXE_DISCONNECTED", false);
+					cl->header.state = Game::CS_FREE;
+					return;
+				}
 			}
 		}
+
+		if (!isReserved)
+		{
+			return;
+		}
+
+		
+		std::vector<Game::client_s*> clients;
+		for (auto i = 0; i < (*Game::sv_maxclients)->current.integer; ++i)
+		{
+			auto* cl = &Game::svs_clients[0];
+			if (!Reserved::IsReservedUser(cl->steamID))
+			{
+				clients.emplace_back(cl);
+			}
+		}
+
+		if (clients.empty())
+		{
+			return;
+		}
+
+		std::ranges::sort(clients, [](Game::client_s * a, Game::client_s * b)
+		{
+			return a->reliableSent < b->reliableSent;
+		});
+
+		// Now kick real un-reserved clients
+		const auto reason = Reserved::GetReason();
+		auto* cl = clients.at(0);
+		Game::SV_DropClient(cl, reason.data(), true);
+		cl->header.state = Game::CS_FREE;
 	}
 
 	void Bots::CleanBotArray()

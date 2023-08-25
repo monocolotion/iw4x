@@ -1,4 +1,5 @@
 #pragma once
+#include <Utils/WebIO.hpp> // Just end me, please
 
 namespace Components
 {
@@ -86,10 +87,56 @@ namespace Components
 			std::size_t receivedBytes;
 		};
 
+		class ScriptDownload
+		{
+		public:
+			ScriptDownload(std::string url, unsigned int object);
+			ScriptDownload(ScriptDownload&& other) noexcept = delete;
+			ScriptDownload& operator=(ScriptDownload&& other) noexcept = delete;
+
+			~ScriptDownload();
+
+			void startWorking();
+
+			[[nodiscard]] bool isWorking() const;
+
+			void notifyProgress();
+
+			void updateProgress(std::size_t currentSize, std::size_t totalSize);
+
+			void notifyDone() const;
+
+			[[nodiscard]] bool isDone() const;
+
+			[[nodiscard]] std::string getUrl() const;
+			[[nodiscard]] unsigned int getObject() const;
+
+			void cancel() const;
+
+		private:
+			std::string url_;
+			std::string result_;
+			unsigned int object_;
+			std::thread workerThread_;
+			Utils::WebIO* webIO_;
+
+			bool done_;
+			bool success_;
+			bool notifyRequired_;
+			std::size_t totalSize_;
+			std::size_t currentSize_;
+
+			void handler();
+
+			void destroyWebIO();
+		};
+
 		static ClientDownload CLDownload;
 		static std::thread ServerThread;
 		static volatile bool Terminate;
 		static bool ServerRunning;
+
+		static std::vector<std::shared_ptr<ScriptDownload>> ScriptDownloads;
 
 		static std::string MongooseLogBuffer;
 

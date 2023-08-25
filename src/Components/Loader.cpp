@@ -43,6 +43,7 @@
 #include "Modules/RawFiles.hpp"
 #include "Modules/RawMouse.hpp"
 #include "Modules/RCon.hpp"
+#include "Modules/Reserved.hpp"
 #include "Modules/Security.hpp"
 #include "Modules/ServerCommands.hpp"
 #include "Modules/ServerInfo.hpp"
@@ -138,7 +139,6 @@ namespace Components
 		Register(new MapRotation());
 		Register(new Maps());
 		Register(new Materials());
-		Register(new Menus());
 		Register(new ModList());
 		Register(new ModelSurfs());
 		Register(new NetworkDebug());
@@ -152,6 +152,7 @@ namespace Components
 		Register(new RawFiles());
 		Register(new RawMouse());
 		Register(new RCon());
+		Register(new Reserved());
 		Register(new Renderer());
 		Register(new Scheduler());
 		Register(new Security());

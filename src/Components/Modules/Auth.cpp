@@ -7,6 +7,7 @@
 #include "Bans.hpp"
 #include "Bots.hpp"
 #include "Friends.hpp"
+#include "Reserved.hpp"
 #include "Toast.hpp"
 
 namespace Components
@@ -26,6 +27,7 @@ namespace Components
 		0x6f5597f103cc50e9
 	};
 
+	bool Auth::IsReserved;
 	bool Auth::HasAccessToReservedSlot;
 	
 	void Auth::Frame()
@@ -246,6 +248,8 @@ namespace Components
 				return;
 			}
 
+			IsReserved = Reserved::IsReservedUser(xuid);
+
 			Logger::Debug("Verified XUID {:#X} ({}) from {}", xuid, userLevel, address.getString());
 			Game::SV_DirectConnect(*address.get());
 		}
@@ -277,7 +281,7 @@ namespace Components
 		HasAccessToReservedSlot = std::strcmp((*Game::sv_privatePassword)->current.string, value) == 0;
 
 		// This stub runs right before the 'server is full check' so we can call this here
-		Bots::SV_DirectConnect_Full_Check();
+		Bots::SV_DirectConnect_Full_Check(IsReserved);
 
 		return value;
 	}

@@ -7,7 +7,7 @@ namespace Components
 	public:
 		Bots();
 
-		static void SV_DirectConnect_Full_Check();
+		static void SV_DirectConnect_Full_Check(bool isReserved);
 
 	private:
 		using botData = std::pair<std::string, std::string>;

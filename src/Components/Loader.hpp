@@ -75,7 +75,6 @@ namespace Components
 #include "Modules/FileSystem.hpp"
 #include "Modules/Localization.hpp"
 #include "Modules/Maps.hpp"
-#include "Modules/Menus.hpp"
 #include "Modules/Renderer.hpp"
 #include "Modules/Scheduler.hpp"
 #include "Modules/Zones.hpp"
